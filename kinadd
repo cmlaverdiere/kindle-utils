@@ -1,0 +1,24 @@
+#!/bin/bash
+
+KINDLE_DIR=/run/media/chris/Kindle/documents
+
+[[ -d "$KINDLE_DIR" ]] || udiskie-mount /dev/sdb1
+echo "Kindle mounted."
+
+for f in "$@"; do
+    if [[ ! "$f" =~ \.mobi$ ]]; then
+        BASE="$(echo "$f" | cut -f1 -d '.')"
+        MOBI="${BASE}.mobi"
+        if ebook-convert "$f" "$MOBI"; then
+            echo "Uploading converted file $MOBI."
+            cp "$MOBI" "$KINDLE_DIR"
+        else
+            echo "Failed to convert $MOBI."
+        fi
+    else
+        echo "Uploading untouched file $f."
+        cp "$f" "$KINDLE_DIR"
+    fi
+done
+
+echo "All files uploaded."
